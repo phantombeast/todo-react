@@ -1,35 +1,29 @@
 import React, { Component } from 'react';
 import {BrowserRouter as Router, Route} from 'react-router-dom'
+import axios from 'axios';
 
 import Header from './components/layout/Header'
 import Todos from './components/Todos';
 import AddTodo from './components/AddTodo';
 import About from './components/pages/About';
-import { v4 as uuidv4 } from 'uuid';
-uuidv4()
+
+
 
 
 
 class App extends Component {
   state={
     todos:[
-      {
-        id:uuidv4(),
-        title:'Take out trash',
-        completed:false
-      },
-      {
-        id:uuidv4(),
-        title:'Buy groceries',
-        completed:false
-      },
-      {
-        id:uuidv4(),
-        title:'Clean House',  
-        completed:true
-      }
     ]
   }
+
+  componentDidMount(){
+    axios.get('http://jsonplaceholder.typicode.com/todos?_limit=10').
+    then(res =>{ this.setState({todos:res.data})
+    })
+    
+  }
+
   //Toggle Completed
   markComplete=(id)=>{
     this.setState({todos:this.state.todos.map(todo=>{
@@ -43,24 +37,26 @@ class App extends Component {
 //Delete Todo
 
 delTodoItem=(id)=>{
- this.setState({
-   todos: [...this.state.todos.filter(todo=>{
-     todo.id!==id
-   })]
- });
+  axios.delete(`http://jsonplaceholder.typicode.com/todos/${id}`).
+ then(res=>{this.setState({
+  todos: [...this.state.todos.filter(todo=>
+    todo.id!==id)]
+  
+}) })
+ ;
  console.log(id)
 }
 
 //Add todo
 
 addTodo=(title)=>{
-  const newTodo={
-    id:uuidv4(),
+  axios.post('http://jsonplaceholder.typicode.com/todos',{
     title,
-    completed:false
-  }
+    complete:false
+  }).
+  then(res=>{ this.setState({todos:[...this.state.todos,res.data]})})
 
-  this.setState({todos:[...this.state.todos,newTodo]})
+  
 }
   render() {
     console.log(this.state.todos)
@@ -69,7 +65,7 @@ addTodo=(title)=>{
       <div className="App">
         <div className="container">
         <Header></Header>
-        <Route path="/" render={props=>(
+        <Route exact path="/" render={props=>(
          <React.Fragment>
              <AddTodo addTodo={this.addTodo}></AddTodo>
         {/* setting value of todos with above this.state.todos and sending it to Todo */}
@@ -77,7 +73,7 @@ addTodo=(title)=>{
         delTodoItem={this.delTodoItem}></Todos>
          </React.Fragment> 
         )}/>
-       <Route path="/about" Component={About}/>
+       <Route path="/about" component={About}/>
         </div>
       </div>
       </Router>
